@@ -1,77 +1,125 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🧃 Getränke bestellen</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FE – Bestellen</title>
 
-  <!-- PWA Manifest + Icon -->
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon-192.png">
-  <meta name="theme-color" content="#14b8a6">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet" />
 
-  <!-- Fonts & Style -->
+  <!-- Style -->
   <style>
+    :root {
+      --primary: #0d9488;
+      --accent: #facc15;
+      --bg: #f9fafb;
+      --text: #1f2937;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f8;
       margin: 0;
+      font-family: 'Quicksand', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
       padding: 2rem;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-    h1 {
-      color: #14b8a6;
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-    .card {
+
+    .container {
+      width: 100%;
+      max-width: 500px;
       background: white;
       padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      max-width: 500px;
-      width: 100%;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
     }
-    input, textarea, button {
+
+    h1 {
+      color: var(--primary);
+      margin-bottom: 1rem;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    h1 span {
+      font-weight: 600;
+    }
+
+    input, textarea {
       width: 100%;
+      padding: 0.75rem 1rem;
       font-size: 1rem;
-      margin-top: 1rem;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      border: 1px solid #ccc;
+      border: 2px solid #e5e7eb;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      transition: border 0.3s;
     }
+
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
     button {
-      background: #14b8a6;
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1.1rem;
+      background-color: var(--primary);
       color: white;
-      font-weight: bold;
       border: none;
+      border-radius: var(--radius);
       cursor: pointer;
       transition: background 0.3s;
     }
+
     button:hover {
-      background: #0d9488;
+      background-color: #0f766e;
     }
+
     #status {
       margin-top: 1rem;
-      font-weight: bold;
+      font-size: 0.95rem;
+      color: var(--primary);
       text-align: center;
     }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
   </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js" type="module"></script>
 </head>
 <body>
 
-  <h1>🧃 Getränke bestellen</h1>
+  <div class="container">
+    <h1>🧃 <span>Bestellen bei FE</span></h1>
 
-  <div class="card">
-    <input id="name" placeholder="👤 Dein Name" />
-    <textarea id="liste" rows="6" placeholder="📝 Was möchtest du bestellen? (z. B. Cola, Wasser…)"></textarea>
+    <input id="name" placeholder="Dein Name" required />
+    <textarea id="liste" rows="5" placeholder="Was möchtest du bestellen? (z. B. Cola, Wasser…)"></textarea>
     <button onclick="absenden()">🚀 Bestellung abschicken</button>
     <div id="status"></div>
   </div>
 
-  <!-- Firebase SDK -->
+  <footer>✨ FE – Food Express</footer>
+  <footer>SEBI Industries</footer>
+
+  <!-- Firebase + Bestellung senden -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
@@ -89,14 +137,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    function absenden() {
+    window.absenden = function () {
       const name = document.getElementById("name").value.trim();
       const liste = document.getElementById("liste").value.trim();
       const status = document.getElementById("status");
 
       if (!name || !liste) {
-        status.textContent = "⚠️ Bitte Name und Bestellung eingeben.";
-        status.style.color = "red";
+        status.textContent = "❗ Bitte Name und Bestellung eingeben.";
         return;
       }
 
@@ -106,30 +153,12 @@
         zeit: new Date().toISOString()
       }).then(() => {
         status.textContent = "✅ Bestellung erfolgreich abgeschickt!";
-        status.style.color = "green";
         document.getElementById("name").value = "";
         document.getElementById("liste").value = "";
       }).catch((error) => {
-        status.textContent = "❌ Fehler: " + error.message;
-        status.style.color = "red";
+        status.textContent = "❌ Fehler beim Senden: " + error.message;
       });
-    }
-  </script>
-
-  <!-- PWA Service Worker -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js")
-        .then(() => console.log("✅ Service Worker registriert"))
-        .catch(err => console.error("❌ Service Worker Fehler:", err));
-    }
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js")
-        .then(() => console.log("Service Worker registriert!"))
-        .catch(err => console.error("Service Worker Fehler:", err));
-      });
-    }
+    };
   </script>
 </body>
 </html>
