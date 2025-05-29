@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin – Bestellungen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      get,
+      set
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8",
+      authDomain: "noname-315e6.firebaseapp.com",
+      databaseURL: "https://noname-315e6-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "noname-315e6",
+      storageBucket: "noname-315e6.appspot.com",
+      messagingSenderId: "555151374113",
+      appId: "1:555151374113:web:0ec7c7e006f238d3ac3060"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("bestellungen").style.display = "block";
+        ladeBestellungen();
+      }
+    });
+    window.login = () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const status = document.getElementById("status");
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => status.textContent = "✅ Login erfolgreich!")
+        .catch((error) => status.textContent = "❌ Fehler: " + error.message);
+    };
+
+    function ladeBestellungen() {
+      const container = document.getElementById("bestellListe");
+      const refBestellungen = ref(db, "bestellungen");
+
+      onValue(refBestellungen, (snapshot) => {
+        const daten = snapshot.val();
+        container.innerHTML = "";
+
+        if (!daten) {
+          container.innerHTML = "<p class='leer'>📭 Keine Bestellungen</p>";
+          return;
+        }
+
+        Object.entries(daten)
+          .sort(([, a], [, b]) => new Date(b.zeit) - new Date(a.zeit))
+          .forEach(([key, eintrag]) => {
+            const card = document.createElement("div");
+            card.className = "card" + (eintrag.erledigt ? " erledigt" : "");
+
+            card.innerHTML = `
+              <h3>👤 ${eintrag.name}</h3>
+              <p>${eintrag.liste.replace(/\n/g, "<br>")}</p>
+              <time>🕒 ${new Date(eintrag.zeit).toLocaleString()}</time>
+              <button onclick="markiereErledigt('${key}')">
+                ${eintrag.erledigt ? "↩️ Rückgängig" : "✅ Erledigt"}
+              </button>
+            `;
+
+            container.appendChild(card);
+          });
+      });
+    }
+
+    window.markiereErledigt = (key) => {
+      const erledigtRef = ref(db, "bestellungen/" + key + "/erledigt");
+      get(erledigtRef).then((snapshot) => {
+        const istErledigt = snapshot.val() === true;
+        set(erledigtRef, !istErledigt);
+      });
+    };
+  </script>
+
+  <style>
+    :root {
+      --bg: #111827;
+      --fg: #f0f4f8;
+      --accent: #14b8a6;
+      --card: #1f2937;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      max-width: 800px;
+      margin-inline: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--accent);
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      margin-top: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      background: #334155;
+      color: white;
+    }
+
+    input:focus, button:hover {
+      outline: 2px solid var(--accent);
+    }
+
+    button {
+      background: var(--accent);
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #bestellungen {
+      display: none;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 1rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 0 15px #0f766e44;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.01);
+    }
+
+    .card h3 {
+      margin: 0 0 0.5rem;
+      color: var(--accent);
+    }
+
+    .card p {
+      white-space: pre-wrap;
+    }
+
+    .card time {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .leer {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-top: 3rem;
+      color: #888;
+    }
+
+    .erledigt {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .card button {
+      margin-top: 1rem;
+      padding: 0.4rem 1rem;
+      font-size: 0.9rem;
+      background: #0f766e;
+      color: white;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+    }
+
+    .card button:hover {
+      background: #0d9488;
+    }
+  </style>
+</head>
+<body>
+  <div id="login">
+    <h1>🔐 Admin Login</h1>
+    <input type="email" id="email" placeholder="E-Mail" />
+    <input type="password" id="password" placeholder="Passwort" />
+    <button onclick="login()">Einloggen</button>
+    <p id="status"></p>
+  </div>
+
+  <div id="bestellungen">
+    <h1>📦 Bestellungen</h1>
+    <div id="bestellListe"></div>
+  </div>
+</body>
+</html>
