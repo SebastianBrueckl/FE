@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FE – Bestellen</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet" />
+
+  <!-- Style -->
+  <style>
+    :root {
+      --primary: #00dcca;
+      --accent: #facc15;
+      --bg: #f9fafb;
+      --text: #1f2937;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Quicksand', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      color: var(--primary);
+      margin-bottom: 1rem;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    h1 span {
+      font-weight: 600;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      transition: border 0.3s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1.1rem;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #52fff1;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" type="module"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js" type="module"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🧃 <span>Bestellen bei FE</span></h1>
+
+    <input id="name" placeholder="Dein Name" required />
+    <textarea id="liste" rows="5" placeholder="Was möchtest du bestellen? (z. B. Cola, Wasser…)"></textarea>
+    <button onclick="absenden()">🚀 Bestellung abschicken</button>
+    <div id="status"></div>
+  </div>
+
+  <footer>✨ FE – Food Express</footer>
+  <footer>SEBI Industries</footer>
+
+  <!-- Firebase + Bestellung senden -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8",
+      authDomain: "noname-315e6.firebaseapp.com",
+      databaseURL: "https://noname-315e6-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "noname-315e6",
+      storageBucket: "noname-315e6.appspot.com",
+      messagingSenderId: "555151374113",
+      appId: "1:555151374113:web:0ec7c7e006f238d3ac3060"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.absenden = function () {
+      const name = document.getElementById("name").value.trim();
+      const liste = document.getElementById("liste").value.trim();
+      const status = document.getElementById("status");
+
+      if (!name || !liste) {
+        status.textContent = "❗ Bitte Name und Bestellung eingeben.";
+        return;
+      }
+
+      push(ref(db, "bestellungen"), {
+        name,
+        liste,
+        zeit: new Date().toISOString()
+      }).then(() => {
+        status.textContent = "✅ Bestellung erfolgreich abgeschickt!";
+        document.getElementById("name").value = "";
+        document.getElementById("liste").value = "";
+      }).catch((error) => {
+        status.textContent = "❌ Fehler beim Senden: " + error.message;
+      });
+    };
+  </script>
+</body>
+</html>
