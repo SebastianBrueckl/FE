@@ -11,9 +11,10 @@
       margin: 0;
       padding: 0;
     }
+
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      background: linear-gradient(135deg, #e0f7fa, #c2f0f7);
       color: #222;
       height: 100vh;
       display: flex;
@@ -21,53 +22,85 @@
       align-items: center;
       overflow: hidden;
       position: relative;
+      padding: 2rem;
     }
+
     .overlay {
       position: absolute;
-      width: 150%;
-      height: 150%;
-      background: radial-gradient(circle, rgba(0,0,0,0.05) 20%, transparent 20%);
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.04) 20%, transparent 20%);
       background-size: 60px 60px;
-      animation: move 20s linear infinite;
+      animation: move 30s linear infinite;
       z-index: 0;
     }
+
     @keyframes move {
       from { background-position: 0 0; }
       to { background-position: 100px 100px; }
     }
+
     .container {
       z-index: 1;
       background: rgba(255, 255, 255, 0.95);
       padding: 3rem;
       border-radius: 20px;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-      max-width: 400px;
-      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      max-width: 480px;
+      width: 100%;
+      animation: fadeIn 0.7s ease-in-out;
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 1.5rem;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
     h1 {
-      font-size: 2.5rem;
+      font-size: 2.4rem;
       color: #00dcca;
       margin-bottom: 1rem;
     }
+
     p {
-      font-size: 1.2rem;
-      color: #555;
+      font-size: 1.1rem;
+      color: #444;
       margin-bottom: 2rem;
+      line-height: 1.5;
     }
+
     a.button {
       display: inline-block;
       padding: 1rem 2rem;
       background: #00dcca;
       color: white;
       text-decoration: none;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 1.1rem;
       font-weight: bold;
-      transition: 0.3s;
+      transition: 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 220, 202, 0.3);
     }
+
     a.button:hover {
-      background: #004999;
+      background: #00bbaa;
       transform: scale(1.05);
     }
 
@@ -76,15 +109,19 @@
         background: #121212;
         color: #eee;
       }
+
       .container {
         background: #1e1e1e;
       }
+
       p {
-        color: #aaa;
+        color: #ccc;
       }
+
       a.button {
         background: #00dcca;
       }
+
       a.button:hover {
         background: #4dfff0;
       }
@@ -94,9 +131,17 @@
 <body>
   <div class="overlay"></div>
   <div class="container">
-    <h1>🚀 FE – Food Express</h1>
-    <p>Blitzschnell. Einfach. Günstig. <br> Die Neueröffnung von SETESA! <br> Kauf ein und spende an MMK1 <br>Der massivsten Mo Kugel, um den Weltrekord zu brechen.</p>
-    <a class="button" href="index.html">Jetzt bestellen</a>
+    <div class="logo">
+      <video src="FE_Logo.mp4" autoplay muted loop playsinline></video>
+    </div>
+    <h1>FE – Food Express</h1>
+    <p>
+      Blitzschnell. Einfach. Günstig.<br />
+      Die Neueröffnung von <strong>SETESA</strong>!<br />
+      Kauf ein und spende an <strong>MMK1</strong> –<br />
+      der massivsten Mo-Kugel, um den Weltrekord zu brechen!
+    </p>
+    <a class="button" href="bestellen.html">Jetzt bestellen</a>
   </div>
 </body>
 </html>
