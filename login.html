@@ -2,75 +2,135 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FE – Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – FE</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" type="module"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js" type="module"></script>
-
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #e0f7fa, #c2f0f7);
-      margin: 0;
-      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+      padding: 2rem;
     }
-    .login-container {
-      background: white;
-      padding: 2.5rem;
+
+    .overlay {
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.04) 20%, transparent 20%);
+      background-size: 60px 60px;
+      animation: move 30s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes move {
+      from { background-position: 0 0; }
+      to { background-position: 100px 100px; }
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 3rem;
       border-radius: 20px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
       text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
       max-width: 400px;
-      width: 90%;
+      width: 100%;
+      animation: fadeIn 0.7s ease-in-out;
     }
-    h1 {
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
       font-size: 2rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       color: #00dcca;
     }
+
     input {
       width: 100%;
-      padding: 0.75rem;
-      font-size: 1rem;
-      margin: 0.5rem 0;
-      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 12px;
       border: 1px solid #ccc;
+      font-size: 1rem;
     }
+
     button {
+      padding: 0.9rem 1.5rem;
       background: #00dcca;
       color: white;
-      padding: 0.75rem 1.5rem;
       border: none;
-      border-radius: 12px;
       font-weight: bold;
       font-size: 1rem;
+      border-radius: 12px;
       cursor: pointer;
-      margin-top: 1rem;
+      transition: 0.3s ease;
       width: 100%;
     }
+
     button:hover {
       background: #00bbaa;
     }
-    #status {
-      margin-top: 1rem;
-      font-size: 0.95rem;
+
+    #recaptcha-container {
+      margin-bottom: 1rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #121212;
+        color: #eee;
+      }
+
+      .card {
+        background: #1e1e1e;
+      }
+
+      input {
+        background: #2a2a2a;
+        color: white;
+        border-color: #444;
+      }
+
+      button {
+        background: #00dcca;
+      }
+
+      button:hover {
+        background: #4dfff0;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h1>📱 Login mit Telefonnummer</h1>
-    <input id="phone" type="tel" placeholder="+49 123 4567890" />
+  <div class="overlay"></div>
+  <div class="card">
+    <h2>📱 Login mit Telefonnummer</h2>
+    <input id="phone" type="tel" placeholder="+436641234567" />
     <div id="recaptcha-container"></div>
     <button onclick="sendCode()">📤 Code senden</button>
-    <input id="code" type="text" placeholder="SMS Code" style="display: none;" />
-    <button id="verifyBtn" onclick="verifyCode()" style="display: none;">✅ Verifizieren</button>
-    <p id="status"></p>
+
+    <div id="codeSection" style="display:none; margin-top:1.5rem;">
+      <input id="code" type="text" placeholder="SMS-Code eingeben" />
+      <button onclick="verifyCode()">✅ Verifizieren</button>
+    </div>
   </div>
 
   <script type="module">
@@ -78,66 +138,46 @@
     import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8",
-      authDomain: "noname-315e6.firebaseapp.com",
-      projectId: "noname-315e6",
-      storageBucket: "noname-315e6.appspot.com",
-      messagingSenderId: "555151374113",
-      appId: "1:555151374113:web:0ec7c7e006f238d3ac3060"
+      apiKey: "DEIN_API_KEY",
+      authDomain: "DEIN_AUTH_DOMAIN",
+      projectId: "DEIN_PROJECT_ID",
+      storageBucket: "DEIN_BUCKET",
+      messagingSenderId: "DEINE_SENDER_ID",
+      appId: "DEINE_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    auth.useDeviceLanguage();
+    const auth = getAuth();
 
-    let confirmationResult;
+    window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+      'size': 'normal',
+      'callback': (response) => {
+        document.getElementById('codeSection').style.display = 'block';
+      }
+    }, auth);
 
     window.sendCode = () => {
-      const phoneNumber = document.getElementById("phone").value.trim();
-      const status = document.getElementById("status");
+      const phone = document.getElementById('phone').value;
+      const appVerifier = window.recaptchaVerifier;
 
-      if (!phoneNumber) {
-        status.textContent = "📵 Bitte Telefonnummer eingeben.";
-        return;
-      }
-
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'normal',
-        callback: () => {
-          status.textContent = "🔐 Code wird gesendet…";
-        }
-      });
-
-      signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-        .then((result) => {
-          confirmationResult = result;
-          document.getElementById("code").style.display = "block";
-          document.getElementById("verifyBtn").style.display = "block";
-          status.textContent = "📨 Code gesendet. Bitte prüfen!";
+      signInWithPhoneNumber(auth, phone, appVerifier)
+        .then((confirmationResult) => {
+          window.confirmationResult = confirmationResult;
+          alert("✅ SMS-Code gesendet!");
         })
         .catch((error) => {
-          status.textContent = "❌ Fehler: " + error.message;
+          alert("❌ Fehler: " + error.message);
         });
     };
 
     window.verifyCode = () => {
-      const code = document.getElementById("code").value.trim();
-      const status = document.getElementById("status");
-
-      if (!code || !confirmationResult) {
-        status.textContent = "⚠️ Bitte gültigen Code eingeben.";
-        return;
-      }
-
-      confirmationResult.confirm(code)
+      const code = document.getElementById('code').value;
+      window.confirmationResult.confirm(code)
         .then((result) => {
-          const user = result.user;
-          status.textContent = "✅ Login erfolgreich! Willkommen " + user.phoneNumber;
-          // Weiterleitung kannst du später aktivieren:
-          // window.location.href = "index.html";
+          window.location.href = "bestellen.html";
         })
         .catch((error) => {
-          status.textContent = "❌ Code ungültig oder abgelaufen.";
+          alert("❌ Ungültiger Code!");
         });
     };
   </script>
