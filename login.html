@@ -2,173 +2,98 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FE – Login</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Food Express</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #e0f7fa, #c2f0f7);
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
-      color: #333;
-      padding: 1rem;
+      margin: 0;
     }
-
     .container {
-      background: white;
+      background: #fff;
       padding: 2rem;
       border-radius: 16px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
       width: 100%;
+      max-width: 400px;
       text-align: center;
-      position: relative;
     }
-
-    h1 {
-      font-size: 1.8rem;
-      margin-bottom: 1.5rem;
+    h2 {
+      margin-bottom: 1rem;
       color: #00bbaa;
     }
-
     input {
       width: 100%;
-      padding: 0.75rem;
-      margin-bottom: 1rem;
-      font-size: 1rem;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      border-radius: 10px;
     }
-
     button {
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      background: #00dcca;
-      border: none;
-      border-radius: 10px;
+      width: 100%;
+      padding: 0.8rem;
+      background-color: #00dcca;
       color: white;
-      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #00bbaa;
-    }
-
-    #recaptcha-container {
-      margin: 1rem 0;
-    }
-
-    .status {
       margin-top: 1rem;
-      font-size: 0.95rem;
-      color: #d33;
     }
-
-    .hidden {
-      display: none;
+    button:hover {
+      background-color: #00bbaa;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📱 Login mit Telefonnumer</h1>
-
-    <input type="tel" id="phone" placeholder="+43..." />
-    <div id="recaptcha-container"></div>
-<button onclick="sendCode()">Code senden</button>
-
-    <div id="code-verifizierung" class="hidden">
-      <input type="text" id="code" placeholder="SMS-Code eingeben" />
-      <button onclick="verifiziereCode()">✅ Einloggen</button>
-    </div>
-
-    <div class="status" id="status"></div>
+    <h2>📱 Login mit Telefonnummer</h2>
+    <input type="text" id="phone" placeholder="+43..." />
+    <div id="recaptcha-container" style="margin: 1rem 0;"></div>
+    <button onclick="sendeCode()">Code senden</button>
   </div>
 
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
-  import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8",
-    authDomain: "noname-315e6.firebaseapp.com",
-    databaseURL: "https://noname-315e6-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "noname-315e6",
-    storageBucket: "noname-315e6.firebasestorage.app",
-    messagingSenderId: "555151374113",
-    appId: "1:555151374113:web:0ec7c7e006f238d3ac3060",
-    measurementId: "G-3WGFYGBS9S"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8",
+      authDomain: "noname-315e6.firebaseapp.com",
+      databaseURL: "https://noname-315e6-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "noname-315e6",
+      storageBucket: "noname-315e6.appspot.com",
+      messagingSenderId: "555151374113",
+      appId: "1:555151374113:web:0ec7c7e006f238d3ac3060"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    let confirmationResult;
-
-    window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
-      'size': 'normal',
-      'callback': (response) => {
-        // ReCaptcha erfolgreich
-      },
-      'expired-callback': () => {
-        document.getElementById("status").textContent = "⚠️ ReCaptcha abgelaufen, bitte neu laden.";
+    window.recaptchaVerifier = new RecaptchaVerifier("recaptcha-container", {
+      size: "normal",
+      callback: (response) => {
+        console.log("reCAPTCHA erfolgreich");
       }
     }, auth);
 
-    window.sendeCode = function() {
-      const phoneNumber = document.getElementById("phone").value.trim();
-      const status = document.getElementById("status");
-
-      if (!phoneNumber.startsWith('+')) {
-        status.textContent = "Bitte gültige Nummer mit +43… eingeben.";
-        return;
-      }
-
+    window.sendeCode = function () {
+      const phoneNumber = document.getElementById("phone").value;
       signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-        .then((result) => {
-          confirmationResult = result;
-          status.textContent = "📨 Code wurde gesendet!";
-          document.getElementById("code-verifizierung").classList.remove("hidden");
+        .then((confirmationResult) => {
+          window.confirmationResult = confirmationResult;
+          alert("✅ SMS-Code gesendet!");
         })
         .catch((error) => {
-          console.error(error);
-          status.textContent = "❌ Fehler: " + error.message;
+          alert("❌ Fehler beim Senden: " + error.message);
         });
-    }
-
-    window.verifiziereCode = function() {
-      const code = document.getElementById("code").value.trim();
-      const status = document.getElementById("status");
-
-      confirmationResult.confirm(code)
-        .then((result) => {
-          status.textContent = "✅ Erfolgreich eingeloggt!";
-          // Weiterleitung
-          setTimeout(() => {
-            window.location.href = "bestellen.html";
-          }, 1000);
-        })
-        .catch((error) => {
-          console.error(error);
-          status.textContent = "❌ Ungültiger Code.";
-        });
-    }
+    };
   </script>
 </body>
 </html>
