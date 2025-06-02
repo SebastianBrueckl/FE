@@ -49,6 +49,10 @@
     button:hover {
       background-color: #00bbaa;
     }
+    #codeSection {
+      display: none;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -56,7 +60,12 @@
     <h2>📱 Login mit Telefonnummer</h2>
     <input type="text" id="phone" placeholder="+43..." />
     <div id="recaptcha-container" style="margin: 1rem 0;"></div>
-    <button onclick="sendeCode()">Code senden</button>
+    <button onclick="sendeCode()">📨 Code senden</button>
+
+    <div id="codeSection">
+      <input type="text" id="code" placeholder="SMS-Code eingeben" />
+      <button onclick="bestaetigeCode()">🔐 Anmelden</button>
+    </div>
   </div>
 
   <script type="module">
@@ -76,22 +85,39 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    // reCAPTCHA initialisieren
     window.recaptchaVerifier = new RecaptchaVerifier("recaptcha-container", {
       size: "normal",
       callback: (response) => {
-        console.log("reCAPTCHA erfolgreich");
+        console.log("✅ reCAPTCHA erfolgreich");
       }
     }, auth);
 
+    // Code senden
     window.sendeCode = function () {
       const phoneNumber = document.getElementById("phone").value;
       signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
         .then((confirmationResult) => {
           window.confirmationResult = confirmationResult;
-          alert("✅ SMS-Code gesendet!");
+          alert("📩 Code gesendet!");
+          document.getElementById("codeSection").style.display = "block";
         })
         .catch((error) => {
           alert("❌ Fehler beim Senden: " + error.message);
+        });
+    };
+
+    // Code bestätigen
+    window.bestaetigeCode = function () {
+      const code = document.getElementById("code").value;
+      window.confirmationResult.confirm(code)
+        .then((result) => {
+          const user = result.user;
+          alert("✅ Erfolgreich eingeloggt als: " + user.phoneNumber);
+          window.location.href = "bestellen.html"; // Weiterleitung nach Login
+        })
+        .catch((error) => {
+          alert("❌ Falscher Code: " + error.message);
         });
     };
   </script>
