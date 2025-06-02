@@ -97,17 +97,23 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8",
-      authDomain: "noname-315e6.firebaseapp.com",
-      projectId: "noname-315e6",
-      storageBucket: "noname-315e6.appspot.com",
-      messagingSenderId: "555151374113",
-      appId: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8"
-    };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8",
+    authDomain: "noname-315e6.firebaseapp.com",
+    databaseURL: "https://noname-315e6-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "noname-315e6",
+    storageBucket: "noname-315e6.firebasestorage.app",
+    messagingSenderId: "555151374113",
+    appId: "1:555151374113:web:0ec7c7e006f238d3ac3060",
+    measurementId: "G-3WGFYGBS9S"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
