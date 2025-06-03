@@ -21,43 +21,33 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
       width: 100%;
       max-width: 400px;
-    }
-    input {
-      width: 100%;
-      padding: 0.8rem;
-      margin-bottom: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
+      text-align: center;
     }
     button {
-      width: 100%;
-      padding: 0.8rem;
-      background: #00dcca;
+      background-color: #4285f4;
       color: white;
+      padding: 0.8rem 1.2rem;
       font-size: 1rem;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      margin-top: 1rem;
     }
-    #recaptcha-container {
-      margin: 1rem 0;
+    button:hover {
+      background-color: #3367d6;
     }
   </style>
 </head>
 <body>
   <div class="login-container">
-    <h2>📱 Login mit Telefonnummer</h2>
-    <input type="tel" id="phoneNumber" placeholder="+43..." />
-    <div id="recaptcha-container"></div>
-    <button onclick="sendeCode()">Code senden</button>
-    <input type="text" id="smsCode" placeholder="SMS Code eingeben" />
-    <button onclick="verifyCode()">Anmelden</button>
+    <h2>🔐 Login mit Google</h2>
+    <p>Ein Klick – keine Registrierung notwendig</p>
+    <button id="googleLogin">Mit Google anmelden</button>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8",
@@ -71,43 +61,19 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // reCAPTCHA einrichten
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "normal",
-      callback: (response) => {
-        console.log("reCAPTCHA gelöst");
-      },
-      "expired-callback": () => {
-        alert("⚠️ reCAPTCHA abgelaufen, bitte erneut versuchen");
-      },
-    });
-
-    let confirmationResult;
-
-    window.sendeCode = async function () {
-      const phoneNumber = document.getElementById("phoneNumber").value;
-      const appVerifier = window.recaptchaVerifier;
+    document.getElementById("googleLogin").addEventListener("click", async () => {
+      const provider = new GoogleAuthProvider();
 
       try {
-        confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-        alert("📩 SMS wurde gesendet!");
-      } catch (error) {
-        console.error("Fehler beim Senden:", error);
-        alert("❌ Fehler beim Senden des Codes: " + error.message);
-      }
-    };
-
-    window.verifyCode = async function () {
-      const code = document.getElementById("smsCode").value;
-      try {
-        await confirmationResult.confirm(code);
-        alert("✅ Erfolgreich eingeloggt!");
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        alert("✅ Willkommen, " + user.displayName);
         window.location.href = "bestellen.html";
       } catch (error) {
-        console.error("Verifizierung fehlgeschlagen:", error);
-        alert("❌ Verifizierung fehlgeschlagen: " + error.message);
+        console.error(error);
+        alert("❌ Login fehlgeschlagen: " + error.message);
       }
-    };
+    });
   </script>
 </body>
 </html>
