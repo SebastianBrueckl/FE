@@ -3,176 +3,128 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Meine Bestellungen – FE</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet"/>
+  <title>Meine Bestellungen – Food Express</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #e0f7fa, #c2f0f7);
-      min-height: 100vh;
+      margin: 0;
       padding: 2rem;
-    }
-
-    h1 {
-      text-align: center;
-      color: #00dcca;
-      margin-bottom: 2rem;
-    }
-
-    .order-list {
-      max-width: 700px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .order {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .order-header {
-      font-weight: bold;
-      font-size: 1.2rem;
       color: #222;
     }
 
-    .order-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 1rem;
-      margin-top: 0.5rem;
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
     }
 
-    .order-actions button {
-      padding: 0.4rem 0.8rem;
-      border: none;
+    h1 {
+      color: #00bbaa;
+      margin-bottom: 1rem;
+    }
+
+    .user-info {
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    .bestellung {
+      border: 1px solid #ddd;
+      padding: 1rem;
       border-radius: 8px;
-      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      background: #f9f9f9;
+    }
+
+    .logout-btn {
+      float: right;
+      padding: 0.4rem 1rem;
+      background: #ff5555;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
-      transition: 0.2s ease;
     }
 
-    .edit-btn {
-      background: #ffd54f;
-      color: #333;
-    }
-
-    .edit-btn:hover {
-      background: #ffca28;
-    }
-
-    .delete-btn {
-      background: #ef5350;
-      color: white;
-    }
-
-    .delete-btn:hover {
-      background: #e53935;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      body {
-        background: #121212;
-        color: #eee;
-      }
-
-      .order {
-        background: #1e1e1e;
-        box-shadow: none;
-        border: 1px solid #333;
-      }
-
-      .edit-btn {
-        background: #ffee58;
-        color: black;
-      }
-
-      .delete-btn {
-        background: #e53935;
-      }
+    .logout-btn:hover {
+      background: #e33;
     }
   </style>
 </head>
 <body>
-  <h1>📦 Meine Bestellungen</h1>
-  <div class="order-list" id="orderList">
-    <p>⏳ Lade Bestellungen…</p>
+  <div class="container">
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+    <h1>📦 Deine Bestellungen</h1>
+    <div class="user-info" id="userInfo"></div>
+    <div id="orders">
+      <p>🔄 Bestellungen werden geladen ...</p>
+    </div>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import { getFirestore, collection, query, where, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "DEIN_API_KEY",
-      authDomain: "DEIN_AUTH_DOMAIN",
-      projectId: "DEIN_PROJECT_ID",
-      storageBucket: "DEIN_BUCKET",
-      messagingSenderId: "DEINE_SENDER_ID",
-      appId: "DEINE_APP_ID"
+      apiKey: "AIzaSyDXS1d2vhsc9zR34XytMFYVxvVewWh5tI8",
+      authDomain: "noname-315e6.firebaseapp.com",
+      databaseURL: "https://noname-315e6-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "noname-315e6",
+      storageBucket: "noname-315e6.appspot.com",
+      messagingSenderId: "555151374113",
+      appId: "1:555151374113:web:0ec7c7e006f238d3ac3060"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
-    const db = getFirestore();
+    const db = getDatabase(app);
 
-    const orderList = document.getElementById("orderList");
+    const userInfo = document.getElementById("userInfo");
+    const ordersDiv = document.getElementById("orders");
+    const logoutBtn = document.getElementById("logoutBtn");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        userInfo.innerHTML = `👤 Eingeloggt als: <strong>${user.displayName || user.email}</strong>`;
+        const uid = user.uid;
+
+        const ordersRef = ref(db, 'orders/' + uid);
+        onValue(ordersRef, snapshot => {
+          const data = snapshot.val();
+          ordersDiv.innerHTML = '';
+
+          if (data) {
+            Object.entries(data).forEach(([key, order]) => {
+              const div = document.createElement('div');
+              div.className = 'bestellung';
+              div.innerHTML = `
+                <strong>📝 Bestellung:</strong><br>
+                ${order.details || '(keine Details)'}<br>
+                <small>🕒 ${order.timestamp || ''}</small>
+              `;
+              ordersDiv.appendChild(div);
+            });
+          } else {
+            ordersDiv.innerHTML = '<p>📭 Keine Bestellungen gefunden.</p>';
+          }
+        });
+
+      } else {
+        window.location.href = 'login.html';
       }
-
-      const phone = user.phoneNumber;
-      const ordersRef = collection(db, "bestellungen");
-      const q = query(ordersRef, where("telefonnummer", "==", phone));
-      const querySnapshot = await getDocs(q);
-
-      orderList.innerHTML = "";
-
-      if (querySnapshot.empty) {
-        orderList.innerHTML = "<p>😢 Keine Bestellungen gefunden.</p>";
-        return;
-      }
-
-      querySnapshot.forEach((docSnap) => {
-        const order = docSnap.data();
-        const div = document.createElement("div");
-        div.className = "order";
-
-        div.innerHTML = `
-          <div class="order-header">🍔 ${order.gericht || "Unbekanntes Gericht"}</div>
-          <div>📞 Telefon: ${order.telefonnummer}</div>
-          <div>📅 Datum: ${order.datum || "-"}</div>
-          <div class="order-actions">
-            <button class="edit-btn" onclick="alert('Bearbeiten folgt bald!')">✏️ Bearbeiten</button>
-            <button class="delete-btn" onclick="deleteOrder('${docSnap.id}')">🗑️ Löschen</button>
-          </div>
-        `;
-        orderList.appendChild(div);
-      });
     });
 
-    window.deleteOrder = async (id) => {
-      if (!confirm("Möchtest du diese Bestellung wirklich löschen?")) return;
-      await deleteDoc(doc(db, "bestellungen", id));
-      location.reload();
-    };
+    logoutBtn.addEventListener('click', () => {
+      signOut(auth).then(() => {
+        window.location.href = 'login.html';
+      });
+    });
   </script>
 </body>
 </html>
